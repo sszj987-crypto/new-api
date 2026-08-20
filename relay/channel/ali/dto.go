@@ -17,6 +17,7 @@ type AliMessage struct {
 type AliMediaContent struct {
 	Image string `json:"image,omitempty"`
 	Text  string `json:"text,omitempty"`
+	Video string `json:"video,omitempty"`
 }
 
 type AliInput struct {
@@ -40,13 +41,23 @@ type AliChatRequest struct {
 }
 
 type AliEmbeddingRequest struct {
-	Model string `json:"model"`
-	Input struct {
-		Texts []string `json:"texts"`
-	} `json:"input"`
-	Parameters *struct {
-		TextType string `json:"text_type,omitempty"`
-	} `json:"parameters,omitempty"`
+	Model      string                  `json:"model"`
+	Input      AliEmbeddingInput       `json:"input"`
+	Parameters *AliEmbeddingParameters `json:"parameters,omitempty"`
+}
+
+type AliEmbeddingInput struct {
+	Texts    []string          `json:"texts,omitempty"`
+	Contents []AliMediaContent `json:"contents,omitempty"`
+}
+
+type AliEmbeddingParameters struct {
+	TextType     string   `json:"text_type,omitempty"`
+	EnableFusion *bool    `json:"enable_fusion,omitempty"`
+	Dimension    *int     `json:"dimension,omitempty"`
+	OutputType   string   `json:"output_type,omitempty"`
+	FPS          *float64 `json:"fps,omitempty"`
+	Instruct     string   `json:"instruct,omitempty"`
 }
 
 type AliEmbedding struct {
@@ -73,6 +84,7 @@ type AliUsage struct {
 	OutputTokens int `json:"output_tokens"`
 	TotalTokens  int `json:"total_tokens"`
 	ImageCount   int `json:"image_count,omitempty"`
+	ImageTokens  int `json:"image_tokens,omitempty"`
 }
 
 type TaskResult struct {

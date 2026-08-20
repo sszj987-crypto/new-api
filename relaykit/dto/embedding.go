@@ -1,9 +1,11 @@
 package dto
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
+	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
 	"github.com/QuantumNous/new-api/relaykit/types"
 )
 
@@ -19,16 +21,32 @@ type EmbeddingOptions struct {
 }
 
 type EmbeddingRequest struct {
-	Model            string   `json:"model"`
-	Input            any      `json:"input"`
-	EncodingFormat   string   `json:"encoding_format,omitempty"`
-	Dimensions       *int     `json:"dimensions,omitempty"`
-	User             string   `json:"user,omitempty"`
-	Seed             *float64 `json:"seed,omitempty"`
-	Temperature      *float64 `json:"temperature,omitempty"`
-	TopP             *float64 `json:"top_p,omitempty"`
-	FrequencyPenalty *float64 `json:"frequency_penalty,omitempty"`
-	PresencePenalty  *float64 `json:"presence_penalty,omitempty"`
+	Model            string          `json:"model"`
+	Input            any             `json:"input"`
+	EncodingFormat   string          `json:"encoding_format,omitempty"`
+	Dimensions       *int            `json:"dimensions,omitempty"`
+	User             string          `json:"user,omitempty"`
+	Seed             *float64        `json:"seed,omitempty"`
+	Temperature      *float64        `json:"temperature,omitempty"`
+	TopP             *float64        `json:"top_p,omitempty"`
+	FrequencyPenalty *float64        `json:"frequency_penalty,omitempty"`
+	PresencePenalty  *float64        `json:"presence_penalty,omitempty"`
+	Parameters       json.RawMessage `json:"-"`
+}
+
+func (r *EmbeddingRequest) UnmarshalJSON(data []byte) error {
+	type alias EmbeddingRequest
+	wireRequest := struct {
+		*alias
+		Parameters json.RawMessage `json:"parameters"`
+	}{
+		alias: (*alias)(r),
+	}
+	if err := kitutil.Unmarshal(data, &wireRequest); err != nil {
+		return err
+	}
+	r.Parameters = wireRequest.Parameters
+	return nil
 }
 
 func (r *EmbeddingRequest) GetTokenCountMeta() *types.TokenCountMeta {
@@ -58,19 +76,27 @@ func (r *EmbeddingRequest) ParseInput() []string {
 	if r.Input == nil {
 		return make([]string, 0)
 	}
-	var input []string
-	switch r.Input.(type) {
+	return embeddingStringValues(r.Input)
+}
+
+func embeddingStringValues(value any) []string {
+	switch value := value.(type) {
 	case string:
-		input = []string{r.Input.(string)}
-	case []any:
-		input = make([]string, 0, len(r.Input.([]any)))
-		for _, item := range r.Input.([]any) {
-			if str, ok := item.(string); ok {
-				input = append(input, str)
-			}
+		return []string{value}
+	case map[string]any:
+		values := make([]string, 0)
+		for _, item := range value {
+			values = append(values, embeddingStringValues(item)...)
 		}
+		return values
+	case []any:
+		values := make([]string, 0, len(value))
+		for _, item := range value {
+			values = append(values, embeddingStringValues(item)...)
+		}
+		return values
 	}
-	return input
+	return nil
 }
 
 type EmbeddingResponseItem struct {

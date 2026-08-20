@@ -211,6 +211,7 @@ var defaultModelRatio = map[string]float64{
 	"qwen-turbo":                                0.8572, // ￥0.012 / 1k tokens
 	"qwen-plus":                                 10,     // ￥0.14 / 1k tokens
 	"text-embedding-v1":                         0.05,   // ￥0.0007 / 1k tokens
+	"qwen3-vl-embedding":                        0.05,   // text: ￥0.0007 / 1k tokens, relative to ￥0.014 baseline
 	"SparkDesk-v1.1":                            1.2858, // ￥0.018 / 1k tokens
 	"SparkDesk-v2.1":                            1.2858, // ￥0.018 / 1k tokens
 	"SparkDesk-v3.1":                            1.2858, // ￥0.018 / 1k tokens
@@ -636,7 +637,8 @@ func ModelRatio2JSONString() string {
 }
 
 var defaultImageRatio = map[string]float64{
-	"gpt-image-1": 2,
+	"gpt-image-1":        2,
+	"qwen3-vl-embedding": 0.0018 / 0.0007, // image/video price relative to qwen3-vl-embedding text price
 }
 var imageRatioMap = types.NewRWMap[string, float64]()
 var audioRatioMap = types.NewRWMap[string, float64]()
